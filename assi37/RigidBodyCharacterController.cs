@@ -4,17 +4,24 @@ using UnityEngine;
 
 namespace Assignmet37
 {
+
     public class RigidBodyCharacterController : MonoBehaviour
     {
         public float speed = 5.0f;
         public float jumpForce = 5.0f;
-
         public float highSpeed = 10.0f;
-        Rigidbody _rg;
+        public LayerMask groundLayer;
 
+        public float growthFactor = 1.2f;  
+        private Vector3 originalScale;
+        public Color[] colorOptions;
+        private int colorIndex = 0;
+
+        Rigidbody _rg;
         Vector3 moveInput;
 
         bool isJump;
+        private bool isGrounded;
 
         void Awake()
         {
@@ -25,25 +32,35 @@ namespace Assignmet37
         {
             _rg.mass = 5f;
             _rg.freezeRotation = true;
+            _rg.constraints = RigidbodyConstraints.FreezeRotation;
+            originalScale = transform.localScale;
         }
 
         void Update()
         {
             float x = Input.GetAxisRaw("Horizontal");
             float z = Input.GetAxisRaw("Vertical");
-            float tempSpeed = speed;
-
-            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-            {
-                tempSpeed = highSpeed;
-            }
+            //float tempSpeed = speed;
+            float tempSpeed = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? highSpeed : speed;
 
 
-            moveInput = new Vector3(x, 0, z);
-            moveInput = moveInput.normalized * tempSpeed;
+            //if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            //{
+            //    tempSpeed = highSpeed;
+            //}
+      
+            //moveInput = new Vector3(x, 0, z);
+            //moveInput = moveInput.normalized * tempSpeed;
+            moveInput = new Vector3(x, 0, z).normalized * tempSpeed;
             moveInput.y = _rg.velocity.y;
 
-            if (Input.GetButtonDown("Jump") && Mathf.Abs(_rg.velocity.y) < 0.01f)
+            isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.1f, groundLayer);
+
+            //if (Input.GetButtonDown("Jump") && Mathf.Abs(_rg.velocity.y) < 0.01f)
+            //{
+            //    isJump = true;
+            //}
+            if(Input.GetButtonDown("Jump") && isGrounded)
             {
                 isJump = true;
             }
@@ -53,7 +70,7 @@ namespace Assignmet37
         void FixedUpdate()
         {
 
-            _rg.velocity = moveInput;
+            _rg.velocity = Vector3.Lerp(_rg.velocity, moveInput, 0.1f);
 
             if (isJump)
             {
@@ -61,6 +78,15 @@ namespace Assignmet37
                 isJump = false;
             }
 
+        }
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Collectible")) 
+            {
+                transform.localScale *= growthFactor;
+                GetComponent<Renderer>().material.color = colorOptions[Random.Range(0,colorOptions.Length)];
+                Destroy(other.gameObject);  
+            }
         }
 
     }
