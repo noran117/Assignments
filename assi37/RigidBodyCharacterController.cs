@@ -12,7 +12,7 @@ namespace Assignmet37
         public float highSpeed = 10.0f;
         public LayerMask groundLayer;
 
-        public float growthFactor = 1.2f;  
+        public float factor = 1.2f;  
         private Vector3 originalScale;
         public Color[] colorOptions;
         private int colorIndex = 0;
@@ -83,7 +83,7 @@ namespace Assignmet37
         {
             if (other.CompareTag("Collectible")) 
             {
-                transform.localScale *= growthFactor;
+                transform.localScale *= factor;
                 GetComponent<Renderer>().material.color = colorOptions[Random.Range(0,colorOptions.Length)];
                 Destroy(other.gameObject);  
             }
